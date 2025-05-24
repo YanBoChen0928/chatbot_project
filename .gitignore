@@ -1,0 +1,10 @@
+.venv/
+
+__pycache__/
+
+*.pyc
+
+.env
+
+# .env.example
+OPENAI_API_KEY=your_key_here
