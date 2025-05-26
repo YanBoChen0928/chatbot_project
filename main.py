@@ -12,6 +12,7 @@ import gradio as gr
 from together import Together
 import textwrap
 from dotenv import load_dotenv
+from langdetect import detect
 
 # load the .env file
 load_dotenv()
@@ -69,23 +70,41 @@ def gen_image(prompt, width=256, height=256):
 ## Function 3: This Allows Us to Create a Chatbot
 # -------------------------------------------------
 def bot_response_function(user_message, chat_history):
+    # Detect the language of the user’s input
+    lang = detect(user_message)
+
     # 1. YOUR CODE HERE - Add your external knowledge here
     external_knowledge = """
-    hitchhiker's guide to the galaxy
+    Bible
     """
 
     # 2. YOUR CODE HERE -  Give the LLM a prompt to respond to the user
-    chatbot_prompt = f"""
-    You are a senior singer who gives advice to new singers
+    # Detect the language of the user's input
+    lang = detect(user_message)
+    
+    # Use Chinese if the user's input is in Chinese
+    if lang == 'zh':
+        chatbot_prompt = f"""
+        回答以下問題: {user_message}
 
-    respond to this {user_message} following these instructions:
+        ## 指示:
+        * 必須使用中文回答
+        * 你是一位以聖經為基礎的智慧顧問，幫助人們解答職業、財務、生活和人際關係的問題
+        * 所有回答都必須基於聖經的教導，並引用具體經文
+        * 首先要同理地複述用戶的問題，然後再提供合適的回應
+        """
+    else:
+        chatbot_prompt = f"""
+        Respond to this question: {user_message}
 
-    ## Instructions:
-    * be very concise
-    * always start with ahhhhhhh
-    * then sing something after your advice
-    * Ground all your answers based on this book {external_knowledge} and make sure you cite the exact phrase from that book
-    """
+        ## Instructions:
+        * Answer in English
+        * You are a wise advisor grounded in the Bible, helping people with career, finance, life, and relationship questions
+        * Ground all your answers based on the Bible, and make sure you cite the exact phrase from that book
+        * Empathetically paraphrase the user's message first, and then provide a suitable response
+        """
+
+    print(f"Chatbot prompt: {chatbot_prompt}")
 
     response = client.chat.completions.create(
         model="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
@@ -118,7 +137,7 @@ if __name__ == "__main__":
     # run the script
     if args.option == 1:
         ### Task 1: YOUR CODE HERE - Write a prompt for the LLM to respond to the user
-        prompt = "write a 3 line post about pizza"
+        prompt = "write 3 motivational quotes"
 
         # Get Response
         response = prompt_llm(prompt)
@@ -129,7 +148,7 @@ if __name__ == "__main__":
 
     elif args.option == 2:
         ### Task 2: YOUR CODE HERE - Write a prompt for the LLM to generate an image
-        prompt = "Create an image of a cat"
+        prompt = "Create an image of a adorable cat"
 
         print(f"\nCreating Image for your prompt: {prompt} ")
         img = gen_image(prompt=prompt, width=256, height=256)
@@ -139,8 +158,13 @@ if __name__ == "__main__":
 
     elif args.option == 3:
         ### Task 3: YOUR CODE HERE - Write a prompt for the LLM to generate text and an image
-        text_prompt = "write a 3 line post about resident evil for instagram"
-        image_prompt = f"give me an image that represents this '{text_prompt}'"
+        external_knowledge = "Bible"
+        text_prompt = f"""
+                Generate one inspiring {external_knowledge} verse of the day. 
+                Format your response as:
+                Verse: [Bible verse]
+                Reference: [Book Chapter:Verse]
+                """
 
         # Generate Text
         response = prompt_llm(text_prompt, with_linebreak=True)
@@ -149,9 +173,21 @@ if __name__ == "__main__":
         print(response)
         print("-" * 100)
 
+        image_prompt = f"""
+        Create an inspirational image based on this Bible verse:
+        {response}
+        Requirements:
+        - Clear typography showing the verse and reference
+        Style: Peaceful and spiritual
+        """
+
+        print("\nResponse:\n")
+        print(response)
+        print("-" * 100)
+
         # Generate Image
         print(f"\nCreating Image for your prompt: {image_prompt}... ")
-        img = gen_image(prompt=image_prompt, width=256, height=256)
+        img = gen_image(prompt=image_prompt, width=512, height=512)
         img.save("results/image_option_3.png")
         print("\nImage saved to results/image_option_3.png\n")
 
