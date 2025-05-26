@@ -46,12 +46,12 @@ def prompt_llm(prompt, with_linebreak=False):
 
 ## FUNCTION 2: This Allows Us to Generate Images
 # -------------------------------------------------
-def gen_image(prompt, width=256, height=256):
+def gen_image(prompt, width=512, height=512):
     # This function allows us to generate images from a prompt
     response = client.images.generate(
         prompt=prompt,
         model="black-forest-labs/FLUX.1-schnell-Free",  # Using a supported model
-        steps=2,
+        steps=4,
         n=1,
     )
     image_url = response.data[0].url
